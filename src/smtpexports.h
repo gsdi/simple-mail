@@ -3,10 +3,10 @@
 
 #include <QtCore/QtGlobal>
 
-#if defined(SimpleMail2Qt5_EXPORTS)
+#if defined(SimpleMail2Qt6_EXPORTS) || defined(SimpleMail2Qt5_EXPORTS)
 #define SMTP_EXPORT Q_DECL_EXPORT
 #else
 #define SMTP_EXPORT Q_DECL_IMPORT
 #endif
 
-#endif // SMTPEXPORTS_H
+#endif  // SMTPEXPORTS_H
