@@ -89,7 +89,7 @@ public:
     QString password;
     quint16 port = 25;
     Server::ConnectionType connectionType = Server::TcpConnection;
-    Server::AuthMethod authMethod = Server::AuthNone;
+    Server::AuthMethod authMethod = Server::AuthAuto;
     Server::PeerVerificationType peerVerificationType = Server::VerifyPeer;
     State state = Disconnected;
     bool capPipelining = false;

@@ -461,25 +461,30 @@ void ServerPrivate::setPeerVerificationType(const Server::PeerVerificationType &
 
 void ServerPrivate::login()
 {
-    auto found =
-        std::find_if(caps.cbegin(), caps.cend(), [this](const QString &cap) {
-          return cap.startsWith(QStringLiteral("250-AUTH")) ||
-                 cap.startsWith(QStringLiteral("250 AUTH"));
-        });
-    if (found) {
-        auto split = found->split(u' ');
-        bool supportsPlain = split.contains(u"PLAIN");
-        bool supportsLogin = split.contains(u"LOGIN");
-        bool supportsMD5 = split.contains(u"CRAM-MD5");
-        if (authMethod == Server::AuthPlain && !supportsPlain) {
-            authMethod = Server::AuthLogin;
-            qCDebug(SIMPLEMAIL_SERVER) << "Switch to" << authMethod;
-        }
-        if (authMethod == Server::AuthLogin && !supportsLogin) {
-            authMethod = Server::AuthCramMd5;
-            qCDebug(SIMPLEMAIL_SERVER) << "Switch to" << authMethod;
-        }
-    }
+  if (authMethod == Server::AuthAuto) {
+      // Select auth method from supprted methods
+      auto found =
+          std::find_if(caps.cbegin(), caps.cend(), [this](const QString &cap) {
+            return cap.startsWith(QStringLiteral("250-AUTH")) ||
+                   cap.startsWith(QStringLiteral("250 AUTH"));
+          });
+      if (found) {
+          auto split = found->split(u' ');
+          bool supportsPlain = split.contains(u"PLAIN");
+          bool supportsLogin = split.contains(u"LOGIN");
+          bool supportsMD5 = split.contains(u"CRAM-MD5");
+          if(supportsMD5){
+              authMethod = Server::AuthCramMd5;
+              qCDebug(SIMPLEMAIL_SERVER) << "Use Auth method" << authMethod;
+          } else if (supportsLogin) {
+              authMethod = Server::AuthLogin;
+              qCDebug(SIMPLEMAIL_SERVER) << "Use Auth method" << authMethod;
+          } else if (supportsPlain) {
+            authMethod = Server::AuthPlain;
+            qCDebug(SIMPLEMAIL_SERVER) << "Use Auth method" << authMethod;
+          }
+      }
+  }
     qCDebug(SIMPLEMAIL_SERVER) << "LOGIN" << authMethod;
     if (authMethod == Server::AuthPlain) {
         qCDebug(SIMPLEMAIL_SERVER) << "Sending authentication plain" << state;

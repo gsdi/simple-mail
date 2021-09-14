@@ -37,6 +37,7 @@ public:
         AuthPlain,
         AuthLogin,
         AuthCramMd5,
+        AuthAuto,
     };
     Q_ENUM(AuthMethod)
 
