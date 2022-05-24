@@ -276,7 +276,7 @@ void ServerPrivate::createSocket()
                                     queue.removeFirst();
                                 }
                                 const QByteArray consume = socket->readAll();
-                                qDebug() << "Mail error" << consume;
+                                qCritical() << "Mail error" << consume;
                                 state = Ready;
                                 commandReset();
                                 return;
