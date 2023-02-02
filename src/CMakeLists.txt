@@ -46,7 +46,7 @@ set(simplemailqt_HEADERS_PRIVATE
 #     common.h
 )
 
-add_library(SimpleMail2Qt${QT_VERSION_MAJOR} SHARED
+add_library(SimpleMail2Qt${QT_VERSION_MAJOR}
     ${simplemailqt_SRC}
     ${simplemailqt_HEADERS}
     ${simplemailqt_HEADERS_PRIVATE}
@@ -63,6 +63,10 @@ target_compile_definitions(SimpleMail2Qt${QT_VERSION_MAJOR}
   PRIVATE
     PLUGINS_PREFER_DEBUG_POSTFIX=$<CONFIG:Debug>
 )
+
+if(NOT BUILD_SHARED_LIBS)
+  target_compile_definitions(SimpleMail2Qt${QT_VERSION_MAJOR} PUBLIC SMTP_STATIC_DEFINE)
+endif()
 
 target_include_directories(SimpleMail2Qt${QT_VERSION_MAJOR} PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>

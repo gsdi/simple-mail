@@ -468,12 +468,12 @@ void ServerPrivate::login()
             return cap.startsWith(QStringLiteral("250-AUTH")) ||
                    cap.startsWith(QStringLiteral("250 AUTH"));
           });
-      if (found) {
+      if (found != caps.cend()) {
           auto split = found->split(u' ');
-          bool supportsPlain = split.contains(u"PLAIN");
-          bool supportsLogin = split.contains(u"LOGIN");
-          bool supportsMD5 = split.contains(u"CRAM-MD5");
-          if(supportsMD5){
+          bool supportsPlain = split.contains(QStringLiteral("PLAIN"));
+          bool supportsLogin = split.contains(QStringLiteral("LOGIN"));
+          bool supportsMD5 = split.contains(QStringLiteral("CRAM-MD5"));
+          if(supportsMD5) {
               authMethod = Server::AuthCramMd5;
               qCDebug(SIMPLEMAIL_SERVER) << "Use Auth method" << authMethod;
           } else if (supportsLogin) {
