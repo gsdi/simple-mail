@@ -1,10 +1,12 @@
 cmake_minimum_required(VERSION 3.15)
-project(libsimplemail VERSION 2.3.0 LANGUAGES CXX)
+project(libsimplemail VERSION 2.99.0 LANGUAGES CXX)
 
 include(GNUInstallDirs)
 
-find_package(QT NAMES Qt6 Qt5 COMPONENTS Core Network REQUIRED)
-find_package(Qt${QT_VERSION_MAJOR} 5.5.0 COMPONENTS Core Network REQUIRED)
+if (NOT DEFINED QT_VERSION_MAJOR)
+    find_package(QT NAMES Qt6 Qt5 COMPONENTS Core Network REQUIRED)
+endif ()
+find_package(Qt${QT_VERSION_MAJOR} 5.15.0 COMPONENTS Core Network REQUIRED)
 
 set(CMAKE_AUTOMOC ON)
 
@@ -20,12 +22,12 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 option(BUILD_SHARED_LIBS "Build in shared lib mode" ON)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Forbid in-tree building
-if(CMAKE_SOURCE_DIR MATCHES CMAKE_BINARY_DIR)
+if(CMAKE_CURRENT_SOURCE_DIR MATCHES CMAKE_BINARY_DIR)
       message(STATUS "Please do an out-of-tree build:")
       message(STATUS "rm -f CMakeCache.txt && mkdir build && cd build; cmake .. && make")
       message(FATAL_ERROR "In-tree-build detected!")
@@ -43,8 +45,6 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     "/usr" CACHE PATH "simplemail default install prefix" FORCE)
 endif()
 
-add_definitions("-DLOCALSTATEDIR=\"${LOCALSTATEDIR}\"")
-
 set(CMAKE_INSTALL_LIBDIR "${CMAKE_INSTALL_PREFIX}/lib/${CMAKE_LIBRARY_ARCHITECTURE}" CACHE PATH "Output directory for libraries")
 
 option(BUILD_DEMOS "Build the demos" ON)
@@ -52,44 +52,25 @@ option(BUILD_DEMOS "Build the demos" ON)
 #
 # Custom C flags
 #
-if (ENABLE_MAINTAINER_CFLAGS)
+if (ENABLE_MAINTAINER_CFLAGS AND NOT MSVC)
     set (MAINTAINER_CFLAGS "-Werror -Wall -Wcast-align -Wno-uninitialized -Wempty-body -Wformat-security -Wformat -Winit-self")
     add_definitions(${MAINTAINER_CFLAGS}
         -DQT_DEPRECATED_WARNINGS
     )
 endif ()
 
-add_definitions(
-    -DQT_NO_KEYWORDS
-    -DQT_NO_CAST_TO_ASCII
-    -DQT_NO_CAST_FROM_ASCII
-    -DQT_STRICT_ITERATORS
-    -DQT_NO_URL_CAST_FROM_STRING
-    -DQT_NO_CAST_FROM_BYTEARRAY
-    -DQT_USE_QSTRINGBUILDER
-    -DQT_NO_SIGNALS_SLOTS_KEYWORDS
-    -DQT_USE_FAST_OPERATOR_PLUS
-    -DQT_DISABLE_DEPRECATED_BEFORE=0x050f00
-)
-
-include_directories(
-    ${CMAKE_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/SimpleMail
-    ${CMAKE_CURRENT_BINARY_DIR}
-)
-
 # cmake config files
-configure_file(${CMAKE_MODULE_PATH}/simplemailqt5-config.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/SimpleMail2Qt${QT_VERSION_MAJOR}Config.cmake
+configure_file(${CMAKE_MODULE_PATH}/simplemailqtX-config.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/SimpleMail${PROJECT_VERSION_MAJOR}Qt${QT_VERSION_MAJOR}Config.cmake
     @ONLY
 )
-configure_file(${CMAKE_MODULE_PATH}/simplemailqt5-config-version.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/SimpleMail2Qt${QT_VERSION_MAJOR}ConfigVersion.cmake
+configure_file(${CMAKE_MODULE_PATH}/simplemailqtX-config-version.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/SimpleMail${PROJECT_VERSION_MAJOR}Qt${QT_VERSION_MAJOR}ConfigVersion.cmake
     @ONLY
 )
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/SimpleMail2Qt${QT_VERSION_MAJOR}Config.cmake
-    ${CMAKE_CURRENT_BINARY_DIR}/SimpleMail2Qt${QT_VERSION_MAJOR}ConfigVersion.cmake
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/SimpleMail2Qt${QT_VERSION_MAJOR}/
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/SimpleMail${PROJECT_VERSION_MAJOR}Qt${QT_VERSION_MAJOR}Config.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/SimpleMail${PROJECT_VERSION_MAJOR}Qt${QT_VERSION_MAJOR}ConfigVersion.cmake
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/SimpleMail${PROJECT_VERSION_MAJOR}Qt${QT_VERSION_MAJOR}/
 )
 
 install(EXPORT SimpleMailTargets
@@ -105,4 +86,3 @@ if (BUILD_DEMOS)
 endif ()
 
 include(CPackConfig)
-

@@ -1,6 +1,6 @@
 /*
   Copyright (c) 2011-2012 - Tőkés Attila
-  Copyright (C) 2015 Daniel Nicoletti <dantti12@gmail.com>
+  Copyright (C) 2015-2023 Daniel Nicoletti <dantti12@gmail.com>
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -14,14 +14,12 @@
 
   See the LICENSE file for more details.
 */
-
-#ifndef EMAILADDRESS_H
-#define EMAILADDRESS_H
-
-#include <QtCore/QSharedDataPointer>
-#include <QString>
+#pragma once
 
 #include "smtpexports.h"
+
+#include <QString>
+#include <QtCore/QSharedDataPointer>
 
 namespace SimpleMail {
 
@@ -31,7 +29,7 @@ class SMTP_EXPORT EmailAddress
 public:
     EmailAddress();
     EmailAddress(const EmailAddress &other);
-    EmailAddress(const QString &nameAndAddress);
+    explicit EmailAddress(const QString &nameAndAddress);
     EmailAddress(const QString &address, const QString &name);
     virtual ~EmailAddress();
 
@@ -48,13 +46,8 @@ protected:
 
 private:
     // Q_DECLARE_PRIVATE equivalent for shared data pointers
-    EmailAddressPrivate* d_func();
-    inline const EmailAddressPrivate* d_func() const
-    {
-        return d_ptr.constData();
-    }
+    EmailAddressPrivate *d_func();
+    inline const EmailAddressPrivate *d_func() const { return d_ptr.constData(); }
 };
 
-}
-
-#endif // EMAILADDRESS_H
+} // namespace SimpleMail

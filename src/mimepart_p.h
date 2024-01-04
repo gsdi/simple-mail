@@ -22,6 +22,8 @@
 
 #include "mimepart.h"
 
+#include <memory>
+
 class QFile;
 namespace SimpleMail {
 
@@ -35,7 +37,7 @@ public:
     bool writeQuotedPrintable(QIODevice *input, QIODevice *out);
 
     QByteArray header;
-    QIODevice *contentDevice = nullptr;
+    std::shared_ptr<QIODevice> contentDevice;
 
     QByteArray contentId;
     QByteArray contentName;
@@ -47,7 +49,6 @@ public:
     MimePart::Encoding contentEncoding = MimePart::_7Bit;
 };
 
-}
+} // namespace SimpleMail
 
 #endif // MIMEPART_P_H
-

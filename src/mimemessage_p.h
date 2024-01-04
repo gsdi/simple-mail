@@ -21,7 +21,7 @@
 #include "mimemultipart.h"
 
 #ifndef MIMEMESSAGE_P_H
-#define MIMEMESSAGE_P_H
+#    define MIMEMESSAGE_P_H
 
 namespace SimpleMail {
 
@@ -31,22 +31,24 @@ public:
     MimeMessagePrivate() = default;
     ~MimeMessagePrivate();
 
-    inline static QByteArray encode(const QByteArray &addressKind, const QList<EmailAddress> &emails, MimePart::Encoding codec);
-    inline static QByteArray encodeData(MimePart::Encoding codec, const QString &data, bool autoencoding);
+    inline static QByteArray encode(const QByteArray &addressKind,
+                                    const QList<EmailAddress> &emails,
+                                    MimePart::Encoding codec);
+    inline static QByteArray
+        encodeData(MimePart::Encoding codec, const QString &data, bool autoencoding);
 
+    QList<QByteArray> listExtraHeaders;
     QList<EmailAddress> recipientsTo;
     QList<EmailAddress> recipientsCc;
     QList<EmailAddress> recipientsBcc;
     QString subject;
     EmailAddress sender;
-    MimePart *content = nullptr;
+    std::shared_ptr<MimePart> content;
     MimePart::Encoding encoding = MimePart::_8Bit;
-    bool autoMimeContentCreated;
     EmailAddress replyTo;
-    QList<QByteArray> listExtraHeaders;
+    bool autoMimeContentCreated;
 };
 
-}
+} // namespace SimpleMail
 
 #endif // MIMEMESSAGE_P_H
-

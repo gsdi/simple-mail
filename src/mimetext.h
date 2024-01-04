@@ -1,6 +1,6 @@
 /*
   Copyright (c) 2011-2012 - Tőkés Attila
-  Copyright (C) 2015 Daniel Nicoletti <dantti12@gmail.com>
+  Copyright (C) 2015-2023 Daniel Nicoletti <dantti12@gmail.com>
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -14,12 +14,9 @@
 
   See the LICENSE file for more details.
 */
-
-#ifndef MIMETEXT_H
-#define MIMETEXT_H
+#pragma once
 
 #include "mimepart.h"
-
 #include "smtpexports.h"
 
 namespace SimpleMail {
@@ -27,13 +24,11 @@ namespace SimpleMail {
 class SMTP_EXPORT MimeText : public MimePart
 {
 public:
-    MimeText(const QString &text = QString());
+    explicit MimeText(const QString &text = {});
     virtual ~MimeText();
 
     void setText(const QString &text);
     QString text() const;
 };
 
-}
-
-#endif // MIMETEXT_H
+} // namespace SimpleMail

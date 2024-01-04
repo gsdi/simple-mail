@@ -1,6 +1,6 @@
 /*
   Copyright (c) 2011-2012 - Tőkés Attila
-  Copyright (C) 2015 Daniel Nicoletti <dantti12@gmail.com>
+  Copyright (C) 2015-2023 Daniel Nicoletti <dantti12@gmail.com>
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -14,23 +14,22 @@
 
   See the LICENSE file for more details.
 */
-
-#ifndef QUOTEDPRINTABLE_H
-#define QUOTEDPRINTABLE_H
-
-#include <QByteArray>
+#pragma once
 
 #include "smtpexports.h"
+
+#include <QByteArray>
 
 namespace SimpleMail {
 
 class SMTP_EXPORT QuotedPrintable
 {
 public:
-    static QByteArray encode(const QByteArray &input, bool rfc2047, int *printable = nullptr, int *encoded = nullptr);
+    static QByteArray encode(const QByteArray &input,
+                             bool rfc2047,
+                             int *printable = nullptr,
+                             int *encoded   = nullptr);
     static QByteArray decode(const QByteArray &input);
 };
 
-}
-
-#endif // QUOTEDPRINTABLE_H
+} // namespace SimpleMail

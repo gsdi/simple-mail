@@ -29,11 +29,10 @@ class MimeMultiPartPrivate : public MimePartPrivate
 {
 public:
     virtual ~MimeMultiPartPrivate();
-    QList<MimePart*> parts;
+    QList<std::shared_ptr<MimePart>> parts;
     MimeMultiPart::MultiPartType type;
 };
 
-}
+} // namespace SimpleMail
 
 #endif // MIMEMULTIPART_P_H
-

@@ -17,13 +17,13 @@
 #ifndef SENDEMAIL_H
 #define SENDEMAIL_H
 
-#include <QWidget>
-#include <QSettings>
-
 #include "../../src/SimpleMail"
 
+#include <QSettings>
+#include <QWidget>
+
 namespace Ui {
-    class SendEmail;
+class SendEmail;
 }
 
 namespace SimpleMail {
@@ -45,14 +45,13 @@ private Q_SLOTS:
 
     void on_sendEmail_clicked();
     void sendMailAsync(const MimeMessage &msg);
-    void sendMailSync(const MimeMessage &msg);
 
 private:
     QSettings m_settings;
     std::vector<Server *> m_aServers;
     Ui::SendEmail *ui;
 
-    void errorMessage(const QString & message);
+    void errorMessage(const QString &message);
 };
 
 #endif // SENDEMAIL_H

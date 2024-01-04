@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2019 Daniel Nicoletti <dantti12@gmail.com>
+  Copyright (C) 2019-2023 Daniel Nicoletti <dantti12@gmail.com>
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -13,14 +13,17 @@
 
   See the LICENSE file for more details.
 */
-#ifndef SERVER_H
-#define SERVER_H
-
-#include <QObject>
+#pragma once
 
 #include "smtpexports.h"
 
+#include <QObject>
+#include <QtNetwork/qtnetwork-config.h>
+
+#ifndef QT_NO_SSL
 class QSslError;
+#endif
+
 namespace SimpleMail {
 
 class MimeMessage;
@@ -31,8 +34,7 @@ class SMTP_EXPORT Server : public QObject
     Q_OBJECT
     Q_DECLARE_PRIVATE(Server)
 public:
-    enum AuthMethod
-    {
+    enum AuthMethod {
         AuthNone,
         AuthPlain,
         AuthLogin,
@@ -41,27 +43,26 @@ public:
     };
     Q_ENUM(AuthMethod)
 
-    enum SmtpError
-    {
+    enum SmtpError {
         ConnectionTimeoutError,
         ResponseTimeoutError,
         SendDataTimeoutError,
         AuthenticationFailedError,
-        ServerError,    // 4xx smtp error
-        ClientError,    // 5xx smtp error
+        ServerError, // 4xx smtp error
+        ClientError, // 5xx smtp error
     };
     Q_ENUM(SmtpError)
 
-    enum ConnectionType
-    {
+    enum ConnectionType {
         TcpConnection,
+#ifndef QT_NO_SSL
         SslConnection,
-        TlsConnection,     // STARTTLS
+        TlsConnection, // STARTTLS
+#endif
     };
     Q_ENUM(ConnectionType)
 
-    enum PeerVerificationType
-    {
+    enum PeerVerificationType {
         VerifyNone,
         VerifyPeer,
     };
@@ -168,26 +169,29 @@ public:
      */
     void connectToServer();
 
+#ifndef QT_NO_SSL
     /**
-     * @brief ignoreSslErrors tells the socket to ignore all pending ssl errors if SSL encryption is active.
-     *      Must be called in a direct connected slot/functor
+     * @brief ignoreSslErrors tells the socket to ignore all pending ssl errors if SSL encryption is
+     * active. Must be called in a direct connected slot/functor
      */
     void ignoreSslErrors();
 
     /**
-     * @brief ignoreSslErrors tells the socket to ignore the given ssl errors if SSL encryption is active.
+     * @brief ignoreSslErrors tells the socket to ignore the given ssl errors if SSL encryption is
+     * active.
      * @param errors defines the errors to ignore
      */
     void ignoreSslErrors(const QList<QSslError> &errors);
+#endif
 
 Q_SIGNALS:
     void smtpError(SmtpError e, const QString &description);
+#ifndef QT_NO_SSL
     void sslErrors(const QList<QSslError> &sslErrorList);
+#endif
 
 private:
     ServerPrivate *d_ptr;
 };
 
-}
-
-#endif // SERVER_H
+} // namespace SimpleMail

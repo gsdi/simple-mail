@@ -18,13 +18,16 @@
 #include "mimepart_p.h"
 #include "quotedprintable.h"
 
-#include <QtCore/QIODevice>
+#include <memory>
+
 #include <QtCore/QBuffer>
 #include <QtCore/QDebug>
+#include <QtCore/QIODevice>
 
 using namespace SimpleMail;
 
-MimePart::MimePart() : d_ptr(new MimePartPrivate)
+MimePart::MimePart()
+    : d_ptr(new MimePartPrivate)
 {
 }
 
@@ -33,18 +36,15 @@ MimePart::MimePart(const MimePart &other)
     Q_D(MimePart);
     d->contentCharset = other.charset();
 
-    if (d->contentDevice) {
-        delete d->contentDevice;
-    }
-    d->contentDevice = new QBuffer;
+    d->contentDevice = std::make_shared<QBuffer>();
     d->contentDevice->open(QBuffer::ReadWrite);
     d->contentDevice->write(other.content());
 
-    d->contentId = other.contentId();
-    d->contentName = other.contentName();
-    d->contentType = other.contentType();
+    d->contentId       = other.contentId();
+    d->contentName     = other.contentName();
+    d->contentType     = other.contentType();
     d->contentEncoding = other.encoding();
-    d->header = other.header();
+    d->header          = other.header();
 }
 
 MimePart::~MimePart()
@@ -56,18 +56,15 @@ MimePart &MimePart::operator=(const MimePart &other)
     Q_D(MimePart);
     d->contentCharset = other.charset();
 
-    if (d->contentDevice) {
-        delete d->contentDevice;
-    }
-    d->contentDevice = new QBuffer;
+    d->contentDevice = std::make_unique<QBuffer>();
     d->contentDevice->open(QBuffer::ReadWrite);
     d->contentDevice->write(other.content());
 
-    d->contentId = other.contentId();
-    d->contentName = other.contentName();
-    d->contentType = other.contentType();
+    d->contentId       = other.contentId();
+    d->contentName     = other.contentName();
+    d->contentType     = other.contentType();
     d->contentEncoding = other.encoding();
-    d->header = other.header();
+    d->header          = other.header();
 
     return *this;
 }
@@ -75,10 +72,8 @@ MimePart &MimePart::operator=(const MimePart &other)
 void MimePart::setContent(const QByteArray &content)
 {
     Q_D(MimePart);
-    if (d->contentDevice) {
-        delete d->contentDevice;
-    }
-    d->contentDevice = new QBuffer;
+
+    d->contentDevice = std::make_unique<QBuffer>();
     d->contentDevice->open(QBuffer::ReadWrite);
     d->contentDevice->write(content);
 }
@@ -174,10 +169,7 @@ void MimePart::setData(const QString &data)
 {
     Q_D(MimePart);
 
-    if (d->contentDevice) {
-        delete d->contentDevice;
-    }
-    d->contentDevice = new QBuffer;
+    d->contentDevice = std::make_unique<QBuffer>();
     d->contentDevice->open(QBuffer::ReadWrite);
 
     switch (d->contentEncoding) {
@@ -233,7 +225,8 @@ bool MimePart::write(QIODevice *device)
     // Content-Type
     headers.append("Content-Type: " + d->contentType);
     if (!d->contentName.isEmpty()) {
-        headers.append("; name=\"" + d->contentName + "\"");
+        headers.append("; name=\"?UTF-8?B?" + d->contentName.toBase64(QByteArray::Base64Encoding) +
+                       "?=\"");
     }
     if (!d->contentCharset.isEmpty()) {
         headers.append("; charset=" + d->contentCharset);
@@ -276,9 +269,9 @@ bool MimePart::write(QIODevice *device)
     return writeData(device);
 }
 
-MimePart::MimePart(MimePartPrivate *d) : d_ptr(d)
+MimePart::MimePart(MimePartPrivate *d)
+    : d_ptr(d)
 {
-
 }
 
 bool MimePart::writeData(QIODevice *device)
@@ -286,7 +279,7 @@ bool MimePart::writeData(QIODevice *device)
     Q_D(MimePart);
 
     /* === Content === */
-    QIODevice *input = d->contentDevice;
+    QIODevice *input = d->contentDevice.get();
     if (!input->isOpen()) {
         if (!input->open(QIODevice::ReadOnly)) {
             return false;
@@ -326,22 +319,17 @@ MimePartPrivate *MimePart::d_func()
     return d_ptr.data();
 }
 
-MimePartPrivate::~MimePartPrivate()
-{
-    delete contentDevice;
-}
+MimePartPrivate::~MimePartPrivate() = default;
 
 bool MimePartPrivate::writeRaw(QIODevice *input, QIODevice *out)
 {
     char block[4096];
-    qint64 totalRead = 0;
     while (!input->atEnd()) {
         qint64 in = input->read(block, sizeof(block));
         if (in <= 0) {
             break;
         }
 
-        totalRead += in;
         if (in != out->write(block, in)) {
             return false;
         }
@@ -352,7 +340,6 @@ bool MimePartPrivate::writeRaw(QIODevice *input, QIODevice *out)
 bool MimePartPrivate::writeBase64(QIODevice *input, QIODevice *out)
 {
     char block[6000]; // Must be powers of 6
-    qint64 totalRead = 0;
     int chars = 0;
     while (!input->atEnd()) {
         qint64 in = input->read(block, sizeof(block));
@@ -360,11 +347,10 @@ bool MimePartPrivate::writeBase64(QIODevice *input, QIODevice *out)
             break;
         }
 
-        totalRead += in;
-      
-        // removed QByteArray::OmitTrailingEquals flag to generate ending == to ensure compatability with Amazon SES
+        // removed QByteArray::OmitTrailingEquals flag to generate ending == to ensure compatability
+        // with Amazon SES
         QByteArray encoded = QByteArray(block, int(in)).toBase64(QByteArray::Base64Encoding);
-        encoded = formatter.format(encoded, chars);
+        encoded            = formatter.format(encoded, chars);
         if (encoded.size() != out->write(encoded)) {
             return false;
         }
@@ -375,7 +361,6 @@ bool MimePartPrivate::writeBase64(QIODevice *input, QIODevice *out)
 bool MimePartPrivate::writeQuotedPrintable(QIODevice *input, QIODevice *out)
 {
     char block[4096];
-    qint64 totalRead = 0;
     int chars = 0;
     while (!input->atEnd()) {
         qint64 in = input->read(block, sizeof(block));
@@ -383,9 +368,8 @@ bool MimePartPrivate::writeQuotedPrintable(QIODevice *input, QIODevice *out)
             break;
         }
 
-        totalRead += in;
         QByteArray encoded = QuotedPrintable::encode(QByteArray(block, int(in)), false);
-        encoded = formatter.formatQuotedPrintable(encoded, chars);
+        encoded            = formatter.formatQuotedPrintable(encoded, chars);
         if (encoded.size() != out->write(encoded)) {
             return false;
         }

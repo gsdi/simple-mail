@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2019 Daniel Nicoletti <dantti12@gmail.com>
+  Copyright (C) 2019-2023 Daniel Nicoletti <dantti12@gmail.com>
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -13,12 +13,11 @@
 
   See the LICENSE file for more details.
 */
-#ifndef SERVERREPLY_H
-#define SERVERREPLY_H
-
-#include <QObject>
+#pragma once
 
 #include "smtpexports.h"
+
+#include <QObject>
 
 namespace SimpleMail {
 
@@ -48,6 +47,4 @@ private:
     ServerReplyPrivate *d_ptr;
 };
 
-}
-
-#endif // SERVERREPLY_H
+} // namespace SimpleMail

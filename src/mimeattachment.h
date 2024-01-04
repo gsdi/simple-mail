@@ -1,6 +1,6 @@
 /*
   Copyright (c) 2011-2012 - Tőkés Attila
-  Copyright (C) 2015 Daniel Nicoletti <dantti12@gmail.com>
+  Copyright (C) 2015-2023 Daniel Nicoletti <dantti12@gmail.com>
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -14,26 +14,22 @@
 
   See the LICENSE file for more details.
 */
+#pragma once
 
-#ifndef MIMEATTACHMENT_H
-#define MIMEATTACHMENT_H
+#include "mimefile.h"
+#include "mimepart.h"
+#include "smtpexports.h"
 
 #include <QFile>
-#include "mimepart.h"
-#include "mimefile.h"
-
-#include "smtpexports.h"
 
 namespace SimpleMail {
 
 class SMTP_EXPORT MimeAttachment : public MimeFile
 {
 public:
-    MimeAttachment(QFile *file);
+    MimeAttachment(const std::shared_ptr<QFile> &file);
     MimeAttachment(const QByteArray &stream, const QString &fileName);
     virtual ~MimeAttachment();
 };
 
-}
-
-#endif // MIMEATTACHMENT_H
+} // namespace SimpleMail

@@ -1,6 +1,6 @@
 /*
   Copyright (c) 2011-2012 - Tőkés Attila
-  Copyright (C) 2015 Daniel Nicoletti <dantti12@gmail.com>
+  Copyright (C) 2015-2023 Daniel Nicoletti <dantti12@gmail.com>
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -14,16 +14,13 @@
 
   See the LICENSE file for more details.
 */
-
-#ifndef MIMEPART_H
-#define MIMEPART_H
-
-#include <QtCore/QSharedDataPointer>
-#include <QtCore/QMetaType>
+#pragma once
 
 #include "mimecontentformatter.h"
-
 #include "smtpexports.h"
+
+#include <QtCore/QMetaType>
+#include <QtCore/QSharedDataPointer>
 
 class QIODevice;
 namespace SimpleMail {
@@ -32,12 +29,7 @@ class MimePartPrivate;
 class SMTP_EXPORT MimePart
 {
 public:
-    enum Encoding {        
-        _7Bit,
-        _8Bit,
-        Base64,
-        QuotedPrintable
-    };
+    enum Encoding { _7Bit, _8Bit, Base64, QuotedPrintable };
 
     MimePart();
     MimePart(const MimePart &other);
@@ -82,15 +74,10 @@ protected:
     QSharedDataPointer<MimePartPrivate> d_ptr;
 
     // Q_DECLARE_PRIVATE equivalent for shared data pointers
-    MimePartPrivate* d_func();
-    inline const MimePartPrivate* d_func() const
-    {
-        return d_ptr.constData();
-    }
+    MimePartPrivate *d_func();
+    inline const MimePartPrivate *d_func() const { return d_ptr.constData(); }
 };
 
-}
+} // namespace SimpleMail
 
-Q_DECLARE_METATYPE(SimpleMail::MimePart*)
-
-#endif // MIMEPART_H
+Q_DECLARE_METATYPE(SimpleMail::MimePart *)
