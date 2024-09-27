@@ -192,8 +192,8 @@ void MimeMessage::setSubject(const QString &subject)
 
 void MimeMessage::addPart(const std::shared_ptr<MimePart> &part)
 {
-    auto content = *d->content;
-    if (typeid(content) == typeid(MimeMultiPart)) {
+    auto *content = dynamic_cast<MimeMultiPart *>(d->content.get());
+    if (content) {
         std::static_pointer_cast<MimeMultiPart>(d->content)->addPart(part);
     }
 }
