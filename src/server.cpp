@@ -488,30 +488,29 @@ void ServerPrivate::setPeerVerificationType(const Server::PeerVerificationType &
 
 void ServerPrivate::login()
 {
-  if (authMethod == Server::AuthAuto) {
-      // Select auth method from supprted methods
-      auto found =
-          std::find_if(caps.cbegin(), caps.cend(), [this](const QString &cap) {
+    if (authMethod == Server::AuthAuto) {
+        // Select auth method from supprted methods
+        auto found = std::find_if(caps.cbegin(), caps.cend(), [this](const QString &cap) {
             return cap.startsWith(QStringLiteral("250-AUTH")) ||
                    cap.startsWith(QStringLiteral("250 AUTH"));
-          });
-      if (found != caps.cend()) {
-          auto split = found->split(u' ');
-          bool supportsPlain = split.contains(QStringLiteral("PLAIN"));
-          bool supportsLogin = split.contains(QStringLiteral("LOGIN"));
-          bool supportsMD5 = split.contains(QStringLiteral("CRAM-MD5"));
-          if(supportsMD5) {
-              authMethod = Server::AuthCramMd5;
-              qCDebug(SIMPLEMAIL_SERVER) << "Use Auth method" << authMethod;
-          } else if (supportsLogin) {
-              authMethod = Server::AuthLogin;
-              qCDebug(SIMPLEMAIL_SERVER) << "Use Auth method" << authMethod;
-          } else if (supportsPlain) {
-            authMethod = Server::AuthPlain;
-            qCDebug(SIMPLEMAIL_SERVER) << "Use Auth method" << authMethod;
-          }
-      }
-  }
+        });
+        if (found != caps.cend()) {
+            auto split         = found->split(u' ');
+            bool supportsPlain = split.contains(QStringLiteral("PLAIN"));
+            bool supportsLogin = split.contains(QStringLiteral("LOGIN"));
+            bool supportsMD5   = split.contains(QStringLiteral("CRAM-MD5"));
+            if (supportsMD5) {
+                authMethod = Server::AuthCramMd5;
+                qCDebug(SIMPLEMAIL_SERVER) << "Use Auth method" << authMethod;
+            } else if (supportsLogin) {
+                authMethod = Server::AuthLogin;
+                qCDebug(SIMPLEMAIL_SERVER) << "Use Auth method" << authMethod;
+            } else if (supportsPlain) {
+                authMethod = Server::AuthPlain;
+                qCDebug(SIMPLEMAIL_SERVER) << "Use Auth method" << authMethod;
+            }
+        }
+    }
     qCDebug(SIMPLEMAIL_SERVER) << "LOGIN" << authMethod;
     if (authMethod == Server::AuthPlain) {
         qCDebug(SIMPLEMAIL_SERVER) << "Sending authentication plain" << state;
@@ -602,11 +601,11 @@ bool ServerPrivate::parseResponseCode(int expectedCode,
                                       QByteArray *responseMessage)
 {
     // Save the server's response
-    const QByteArray responseText = socket->readLine().trimmed();
+    QByteArray responseText = socket->readLine().trimmed();
     qCDebug(SIMPLEMAIL_SERVER) << "Got response" << responseText << "expected" << expectedCode;
 
     // Extract the respose code from the server's responce (first 3 digits)
-    const int responseCode = responseText.left(3).toInt();
+    int responseCode = responseText.left(3).toInt();
 
     if (responseCode / 100 == 4) {
         failConnection(Server::ServerError, responseCode, QString::fromLatin1(responseText));
@@ -628,6 +627,34 @@ bool ServerPrivate::parseResponseCode(int expectedCode,
         }
         if (responseMessage) {
             *responseMessage = responseText.mid(4);
+        }
+        return true;
+    } else if (responseText[3] == '-') {
+        while (socket->canReadLine()) {
+            auto nextLine = socket->readLine().trimmed();
+            auto nextCode = nextLine.left(3).toInt();
+            if (nextCode != expectedCode) {
+                responseCode = nextCode;
+                responseText.append("\n");
+                responseText.append(nextLine);
+                break;
+            } else {
+                responseText.append("\n");
+                responseText.append(nextLine);
+                if (nextLine[3] == ' ') {
+                    break;
+                }
+            }
+        }
+        if (responseCode != expectedCode) {
+            const QString lastError = QString::fromLatin1(responseText);
+            qCWarning(SIMPLEMAIL_SERVER)
+                << "Unexpected server response" << lastError << expectedCode;
+            failConnection(defaultError, responseCode, lastError);
+            return false;
+        }
+        if (responseMessage) {
+            *responseMessage = responseText.mid(5);
         }
         return true;
     }
