@@ -27,9 +27,11 @@ MimeAttachment::MimeAttachment(std::shared_ptr<QFile> &&file)
     : MimeFile(std::move(file))
 {
     Q_D(MimePart);
-    const QString filename = QFileInfo(*file).fileName();
+    const QFileInfo info = QFileInfo(*file);
+    const QString filename = info.fileName();
+    const auto size = info.size();
     d->header.append("Content-Disposition: attachment; filename=\"=?UTF-8?B?" +
-                     filename.toUtf8().toBase64(QByteArray::Base64Encoding) + "?=\"\r\n");
+                     filename.toUtf8().toBase64(QByteArray::Base64Encoding) + "?=\"; size="+QString::number(size).toUtf8()+";\r\n");
 }
 
 MimeAttachment::MimeAttachment(const QByteArray &stream, const QString &fileName)
@@ -37,7 +39,7 @@ MimeAttachment::MimeAttachment(const QByteArray &stream, const QString &fileName
 {
     Q_D(MimePart);
     d->header.append("Content-Disposition: attachment; filename=\"=?UTF-8?B?" +
-                     fileName.toUtf8().toBase64(QByteArray::Base64Encoding) + "?=\"\r\n");
+                     fileName.toUtf8().toBase64(QByteArray::Base64Encoding) + "?=\"; size="+QString::number(stream.size()).toUtf8()+";\r\n");
 }
 
 MimeAttachment::~MimeAttachment()
