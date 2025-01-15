@@ -250,7 +250,7 @@ void ServerPrivate::createSocket()
     });
 
     auto erroFn = [=](QAbstractSocket::SocketError error) {
-        qCDebug(SIMPLEMAIL_SERVER) << "SocketError" << error << socket->readAll();
+        qCCritical(SIMPLEMAIL_SERVER) << "SocketError" << error << socket->readAll();
         if (!queue.isEmpty()) {
             ServerReplyContainer &cont = queue[0];
             if (!cont.reply.isNull()) {
@@ -745,7 +745,7 @@ void ServerPrivate::failConnection(Server::SmtpError defaultError,
 {
     Q_Q(Server);
 
-    qCDebug(SIMPLEMAIL_SERVER) << "failConnection" << defaultError << responseCode << error;
+    qCCritical(SIMPLEMAIL_SERVER) << "failConnection" << defaultError << responseCode << error;
     // Call this when the connection should be closed due an error
     for (auto &mail : queue) {
         ServerReply *reply = mail.reply;
