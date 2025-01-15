@@ -1,5 +1,5 @@
-cmake_minimum_required(VERSION 3.15)
-project(libsimplemail VERSION 2.99.0 LANGUAGES CXX)
+cmake_minimum_required(VERSION 3.28)
+project(libsimplemail VERSION 3.1.0 LANGUAGES CXX)
 
 include(GNUInstallDirs)
 
@@ -44,8 +44,6 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   set(CMAKE_INSTALL_PREFIX
     "/usr" CACHE PATH "simplemail default install prefix" FORCE)
 endif()
-
-set(CMAKE_INSTALL_LIBDIR "${CMAKE_INSTALL_PREFIX}/lib/${CMAKE_LIBRARY_ARCHITECTURE}" CACHE PATH "Output directory for libraries")
 
 option(BUILD_DEMOS "Build the demos" ON)
 
