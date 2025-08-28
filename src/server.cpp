@@ -600,68 +600,55 @@ bool ServerPrivate::parseResponseCode(int expectedCode,
                                       Server::SmtpError defaultError,
                                       QByteArray *responseMessage)
 {
-    // Save the server's response
-    QByteArray responseText = socket->readLine().trimmed();
-    qCDebug(SIMPLEMAIL_SERVER) << "Got response" << responseText << "expected" << expectedCode;
+    while (socket->canReadLine()) {
+        // Save the server's response
+        const QByteArray responseText = socket->readLine().trimmed();
+        const int responseSize        = responseText.size();
+        qCDebug(SIMPLEMAIL_SERVER) << "Got response" << responseText << "expected" << expectedCode;
 
-    // Extract the respose code from the server's responce (first 3 digits)
-    int responseCode = responseText.left(3).toInt();
+        // Extract the respose code from the server's responce (first 3 digits)
+        const int responseCode = responseText.left(3).toInt();
 
-    if (responseCode / 100 == 4) {
-        failConnection(Server::ServerError, responseCode, QString::fromLatin1(responseText));
-        return false;
-    }
-
-    if (responseCode / 100 == 5) {
-        failConnection(Server::ClientError, responseCode, QString::fromLatin1(responseText));
-        return false;
-    }
-
-    if (responseText[3] == ' ') {
-        if (responseCode != expectedCode) {
-            const QString lastError = QString::fromLatin1(responseText);
-            qCWarning(SIMPLEMAIL_SERVER)
-                << "Unexpected server response" << lastError << expectedCode;
-            failConnection(defaultError, responseCode, lastError);
+        if (responseCode / 100 == 4) {
+            failConnection(Server::ServerError, responseCode, QString::fromLatin1(responseText));
             return false;
         }
-        if (responseMessage) {
-            *responseMessage = responseText.mid(4);
+
+        if (responseCode / 100 == 5) {
+            failConnection(Server::ClientError, responseCode, QString::fromLatin1(responseText));
+            return false;
         }
-        return true;
-    } else if (responseText[3] == '-') {
-        while (socket->canReadLine()) {
-            auto nextLine = socket->readLine().trimmed();
-            auto nextCode = nextLine.left(3).toInt();
-            if (nextCode != expectedCode) {
-                responseCode = nextCode;
-                responseText.append("\n");
-                responseText.append(nextLine);
-                break;
-            } else {
-                responseText.append("\n");
-                responseText.append(nextLine);
-                if (nextLine[3] == ' ') {
-                    break;
-                }
+
+        if (responseSize >= 4 && responseText[3] == '-') {
+            if (responseCode != expectedCode) {
+                const QString lastError = QString::fromLatin1(responseText);
+                qCWarning(SIMPLEMAIL_SERVER)
+                    << "Unexpected server response" << lastError << expectedCode;
+                failConnection(defaultError, responseCode, lastError);
+                return false;
             }
+            continue;
         }
-        if (responseCode != expectedCode) {
-            const QString lastError = QString::fromLatin1(responseText);
-            qCWarning(SIMPLEMAIL_SERVER)
-                << "Unexpected server response" << lastError << expectedCode;
-            failConnection(defaultError, responseCode, lastError);
-            return false;
-        }
-        if (responseMessage) {
-            *responseMessage = responseText.mid(5);
-        }
-        return true;
-    }
 
-    const QString lastError = QString::fromLatin1(responseText);
-    qCWarning(SIMPLEMAIL_SERVER) << "Unexpected server response" << lastError << expectedCode;
-    failConnection(defaultError, responseCode, lastError);
+        if (responseSize >= 4 && responseText[3] == ' ') {
+            if (responseCode != expectedCode) {
+                const QString lastError = QString::fromLatin1(responseText);
+                qCWarning(SIMPLEMAIL_SERVER)
+                    << "Unexpected server response" << lastError << expectedCode;
+                failConnection(defaultError, responseCode, lastError);
+                return false;
+            }
+            if (responseMessage) {
+                *responseMessage = responseText.mid(4);
+            }
+            return true;
+        }
+
+        const QString lastError = QString::fromLatin1(responseText);
+        qCWarning(SIMPLEMAIL_SERVER) << "Unexpected server response" << lastError << expectedCode;
+        failConnection(defaultError, responseCode, lastError);
+        return false;
+    }
     return false;
 }
 
